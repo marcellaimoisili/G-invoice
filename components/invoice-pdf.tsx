@@ -291,3 +291,4 @@ export async function renderInvoicePdf(
 ): Promise<Buffer> {
   return renderToBuffer(<InvoiceDocument listing={listing} user={user} />)
 }
+
