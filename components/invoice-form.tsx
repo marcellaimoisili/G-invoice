@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { Loader2, ChevronLeft, FileText, ArrowUpRight, CalendarDays, Phone, Mail } from "lucide-react"
+import { extractListingId } from "@/lib/garage"
 
 /**
  * Source classes extracted verbatim from shopgarage.com/listing/...
@@ -38,27 +39,6 @@ export function InvoiceForm() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [result, setResult] = useState<{ id: string } | null>(null)
-
-  /**
-   * Pull the UUID out of a Garage listing URL.
-   * Format: https://www.shopgarage.com/listing/<slug>-<uuid>
-   */
-  function extractListingId(raw: string): string | null {
-    try {
-      const parsed = new URL(raw.trim())
-      // Must be https and a shopgarage.com hostname
-      if (parsed.protocol !== "https:") return null
-      if (!parsed.hostname.endsWith("shopgarage.com")) return null
-      const slug = parsed.pathname.split("/listing/")[1]
-      if (!slug) return null
-      const m = slug.match(
-        /([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$/i
-      )
-      return m ? m[1] : null
-    } catch {
-      return null
-    }
-  }
 
   function handleBack() {
     setScreen("form")

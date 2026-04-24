@@ -6,7 +6,7 @@ import './globals.css'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'Garage - Fire Truck PDF Invoice Generator',
+  title: 'Garage - PDF Invoice Generator',
   description:
     'Paste a Garage listing URL to generate a downloadable PDF invoice for any fire truck.',
 }
