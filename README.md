@@ -37,7 +37,7 @@ The client (`extractListingId`) rejects malformed URLs before a fetch. The serve
 ## What I'd add with more time
 
 - **Seller address lookup.** Each listing carries an `addressId`. Hitting the matching `/addresses/:id` endpoint (or the equivalent) would give a full street address so "Ship From" shows more than just state.
-- **Cleaner auth model.** Current wiring is the simplest for demo purposes: a single service token in env — fast demo, but couples every invoice to that user.
+- **Cleaner auth model.** Current wiring is the simplest for demo purposes: a single bearer token in env — fast demo of what a logged in user would see, but couples every invoice to that user (until the token expires, at which point email would not be prefilled and the fallback invoice text for user "BILL TO" section is an empty fill-in line with "Recipient to complete").
 - **Rate limiting + retry.** Upstream API lives on a free-tier host — a 429 or cold-start 502 is plausible. Vercel rate-limit middleware plus exponential-backoff retry on 5xx is the right hardening.
 - **Tests.** `extractListingId` has enough edge cases (trailing slash, uppercase UUIDs, query strings, non-https, other hostnames) to deserve a Vitest table. Route tests would mock the upstream fetch and Resend.
 - **PDF accessibility.** Tag structure (`<Document>` metadata, logical reading order) is missing — optimized for visual output today.
