@@ -227,11 +227,12 @@ export function InvoiceForm() {
       <div className="flex flex-col items-center px-4 py-10 sm:px-6">
         {/* Preview (success) or icon (error) */}
         {result && previewUrl ? (
-          <button
-            type="button"
-            onClick={() => window.open(previewUrl, "_blank", "noopener")}
+          <a
+            href={previewUrl}
+            target="_blank"
+            rel="noopener noreferrer"
             aria-label="Open PDF in new tab"
-            className="group mb-5 overflow-hidden rounded-md border border-neutral-200 bg-white shadow-sm transition-all hover:shadow-md hover:border-neutral-300 active:scale-[0.99] cursor-pointer"
+            className="group mb-5 block overflow-hidden rounded-md border border-neutral-200 bg-white shadow-sm transition-all hover:shadow-md hover:border-neutral-300 active:scale-[0.99] cursor-pointer"
             style={{ width: 140, height: 181 }}
           >
             <iframe
@@ -239,7 +240,7 @@ export function InvoiceForm() {
               title="Invoice preview"
               className="pointer-events-none h-full w-full"
             />
-          </button>
+          </a>
         ) : (
           <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-full border border-neutral-200 text-neutral-400">
             <FileText size={26} strokeWidth={1.5} />
