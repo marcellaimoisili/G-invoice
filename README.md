@@ -40,7 +40,7 @@ The client (`extractListingId`) rejects malformed URLs before a fetch. The serve
 - **Cleaner auth model.** Current wiring is the simplest for demo purposes: a single bearer token in env — fast demo of what a logged in user would see, but couples every invoice to that user (until the token expires, at which point email would not be prefilled and the fallback invoice text for user "BILL TO" section is an empty fill-in line with "Recipient to complete").
 - **Rate limiting + retry.** Upstream API lives on a free-tier host — a 429 or cold-start 502 is plausible. Vercel rate-limit middleware plus exponential-backoff retry on 5xx is the right hardening.
 - **Tests.** `extractListingId` has enough edge cases (trailing slash, uppercase UUIDs, query strings, non-https, other hostnames) to deserve a Vitest table. Route tests would mock the upstream fetch and Resend.
-- **PDF accessibility.** Tag structure (`<Document>` metadata, logical reading order) is missing — optimized for visual output today.
+- **PDF accessibility/render.** Some description responses have weird chars, I'd properly scrub these. Tag structure (`<Document>` metadata, logical reading order) is missing — optimized for visual output today.
 - **Templated email body.** The HTML body is inline in the route handler. Extracting to a tiny template file would make copy tweaks a non-code change.
 - **Long-description overflow handling.** PDF layout currently assumes descriptions fit in the remaining vertical space on the one page. Very long descriptions could push the price table onto a second page. Might want to truncate at a safe character cap with a "see full listing" link note, or something.
 
