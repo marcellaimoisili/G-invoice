@@ -5,8 +5,14 @@ export default function Home() {
   return (
     <div className="flex min-h-svh flex-col items-center bg-background">
       {/* ── Header bar ──────────────────────────────── */}
-      <header className="flex w-full items-center border-b border-neutral-200 bg-card px-6 py-4">
-        <GarageLogo />
+      <header className="w-full border-b border-neutral-200 bg-card">
+        <div className="mx-auto w-full max-w-7xl py-5.5 sm:px-6 lg:px-4">
+          <div className="flex items-center justify-between space-x-8">
+            <a href="/" aria-label="Home">
+              <GarageLogo />
+            </a>
+          </div>
+        </div>
       </header>
 
       {/* ── Centered form card ──────────────────────── */}

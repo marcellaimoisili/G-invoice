@@ -1,16 +1,13 @@
-import Image from "next/image"
-
 /**
- * Garage wordmark logo — renders the official orange SVG wordmark.
+* Garage wordmark logo — renders the official orange SVG wordmark.
  */
 export function GarageLogo() {
   return (
-    <Image
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
       src="/garage-logo.svg"
-      alt="Garage"
-      width={120}
-      height={32}
-      priority
+      alt="Garage logo"
+      className="h-[22px] lg:h-6 shrink-0"
     />
   )
 }
