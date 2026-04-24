@@ -38,18 +38,67 @@ export function InvoiceForm() {
   const [url, setUrl] = useState("")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [result, setResult] = useState<{ id: string } | null>(null)
+  const [result, setResult] = useState<{ id: string; blob: Blob } | null>(null)
+  const [emailState, setEmailState] = useState<
+    "idle" | "sending" | "sent" | "error" | "needs_email"
+  >("idle")
+  const [emailAddress, setEmailAddress] = useState<string | null>(null)
+  const [manualEmail, setManualEmail] = useState("")
+
+  async function handleEmail(overrideTo?: string) {
+    if (!result) return
+    setEmailState("sending")
+    try {
+      const res = await fetch("/api/invoice/email", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          id: result.id,
+          ...(overrideTo ? { to: overrideTo } : {}),
+        }),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (res.status === 400 && data.error === "no_email") {
+        setEmailState("needs_email")
+        return
+      }
+      if (!res.ok) throw new Error(data.error ?? "send_failed")
+      setEmailAddress(data.to ?? null)
+      setEmailState("sent")
+    } catch {
+      setEmailState("error")
+    }
+  }
+
+  function triggerDownload(blob: Blob, id: string) {
+    const href = URL.createObjectURL(blob)
+    const a = document.createElement("a")
+    a.href = href
+    a.download = `garage-invoice-${id}.pdf`
+    document.body.appendChild(a)
+    a.click()
+    a.remove()
+    URL.revokeObjectURL(href)
+  }
+
+  function resetEmailState() {
+    setEmailState("idle")
+    setEmailAddress(null)
+    setManualEmail("")
+  }
 
   function handleBack() {
     setScreen("form")
     setError(null)
     setResult(null)
+    resetEmailState()
   }
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setError(null)
     setResult(null)
+    resetEmailState()
 
     // Hard prefix check — any URL that doesn't start with this goes straight to failed screen
     if (!url.trim().startsWith("https://www.shopgarage.com/listing/")) {
@@ -70,16 +119,8 @@ export function InvoiceForm() {
       const res = await fetch(`/api/invoice?id=${listingId}`)
       if (!res.ok) throw new Error("api_error")
 
-      // TODO: when the route returns a real PDF blob, replace the lines below:
-      //   const blob = await res.blob()
-      //   const href = URL.createObjectURL(blob)
-      //   Object.assign(document.createElement("a"), {
-      //     href,
-      //     download: `garage-${listingId}.pdf`,
-      //   }).click()
-      //   URL.revokeObjectURL(href)
-
-      setResult({ id: listingId })
+      const blob = await res.blob()
+      setResult({ id: listingId, blob })
       setScreen("result")
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong.")
@@ -188,22 +229,88 @@ export function InvoiceForm() {
 
             {/* Action buttons */}
             <div className="mt-6 flex w-full gap-2">
-              {/* TODO: wire onClick to trigger the PDF blob download */}
               <button
                 type="button"
+                onClick={() => result && triggerDownload(result.blob, result.id)}
                 className="flex h-12 flex-1 items-center justify-center rounded-lg border border-neutral-200 bg-white px-3 text-sm font-medium text-neutral-900 hover:border-neutral-300 hover:bg-neutral-50 active:scale-[0.99] transition-colors cursor-pointer"
               >
                 Download
               </button>
 
-              {/* TODO: wire onClick to open email input / call email API */}
               <button
                 type="button"
-                className="flex h-12 flex-1 items-center justify-center rounded-lg border border-neutral-200 bg-white px-3 text-sm font-medium text-neutral-900 hover:border-neutral-300 hover:bg-neutral-50 active:scale-[0.99] transition-colors cursor-pointer"
+                onClick={() => handleEmail()}
+                disabled={
+                  emailState === "sending" ||
+                  emailState === "sent" ||
+                  emailState === "needs_email"
+                }
+                className="flex h-12 flex-1 items-center justify-center rounded-lg border border-neutral-200 bg-white px-3 text-sm font-medium text-neutral-900 hover:border-neutral-300 hover:bg-neutral-50 active:scale-[0.99] transition-colors cursor-pointer disabled:opacity-60 disabled:pointer-events-none"
               >
-                Email
+                {emailState === "sending" ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Sending
+                  </>
+                ) : emailState === "sent" ? (
+                  "Sent"
+                ) : emailState === "error" ? (
+                  "Try again"
+                ) : (
+                  "Email"
+                )}
               </button>
             </div>
+
+            {emailState === "needs_email" ? (
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault()
+                  const trimmed = manualEmail.trim()
+                  if (trimmed) handleEmail(trimmed)
+                }}
+                className="mt-3 flex w-full gap-2"
+              >
+                <input
+                  type="email"
+                  required
+                  autoFocus
+                  value={manualEmail}
+                  onChange={(e) => setManualEmail(e.target.value)}
+                  placeholder="recipient@email.com"
+                  className="h-10 flex-1 rounded-lg border border-neutral-200 bg-white px-3 text-sm text-neutral-900 outline-none placeholder:text-neutral-400 focus:border-neutral-300 focus:ring-2 focus:ring-neutral-100"
+                />
+                <button
+                  type="submit"
+                  className="h-10 rounded-lg border border-orange-500 bg-orange-500 px-4 text-sm font-medium text-white hover:border-orange-600 hover:bg-orange-600 active:scale-[0.99] transition-colors cursor-pointer"
+                >
+                  Send
+                </button>
+              </form>
+            ) : null}
+
+            {emailState === "sent" && emailAddress ? (
+              <div className="mt-3 flex flex-col items-center gap-1">
+                <p className="text-xs text-emerald-600">
+                  Sent to {emailAddress}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setManualEmail("")
+                    setEmailState("needs_email")
+                  }}
+                  className="text-xs text-neutral-500 underline underline-offset-2 hover:text-neutral-900 transition-colors cursor-pointer"
+                >
+                  Send to a different email address
+                </button>
+              </div>
+            ) : null}
+            {emailState === "error" ? (
+              <p className="mt-3 text-center text-xs text-red-500">
+                Couldn&apos;t send the email. Check the server logs.
+              </p>
+            ) : null}
           </>
         ) : (
           /* Error */
@@ -219,7 +326,7 @@ export function InvoiceForm() {
               {[
                 {
                   label: "Help center",
-                  href: "https://support.shopgarage.com",
+                  href: "https://help.withgarage.com/en/",
                   icon: <ArrowUpRight size={16} strokeWidth={1.5} />,
                 },
                 {

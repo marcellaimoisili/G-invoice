@@ -52,6 +52,45 @@ type GarageListingResponse = {
   listingImages?: { order: number; url: string }[]
 }
 
+export type UserProfile = {
+  firstName: string | null
+  lastName: string | null
+  entity: string | null
+  email: string | null
+  addressState: string | null
+}
+
+type GarageUserResponse = {
+  firstName: string | null
+  lastName: string | null
+  entity: string | null
+  email: string | null
+  addressState: string | null
+}
+
+export async function fetchMe(token: string): Promise<UserProfile | null> {
+  try {
+    const res = await fetch(`${GARAGE_API_BASE}/users/me`, {
+      headers: {
+        authorization: `Bearer ${token}`,
+        accept: "application/json",
+      },
+      cache: "no-store",
+    })
+    if (!res.ok) return null
+    const raw = (await res.json()) as GarageUserResponse
+    return {
+      firstName: raw.firstName ?? null,
+      lastName: raw.lastName ?? null,
+      entity: raw.entity ?? null,
+      email: raw.email ?? null,
+      addressState: raw.addressState ?? null,
+    }
+  } catch {
+    return null
+  }
+}
+
 export async function fetchListing(id: string): Promise<Listing> {
   if (!UUID_REGEX.test(id)) throw new Error("invalid_id")
 
