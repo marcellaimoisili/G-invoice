@@ -162,7 +162,7 @@ export function InvoiceDocument({
 }) {
   const showAppraisedNote =
     listing.appraisedPrice !== null &&
-    listing.appraisedPrice !== listing.sellingPrice
+    listing.appraisedPrice > listing.sellingPrice
 
   const descriptionLines = listing.description
     .split("\n")

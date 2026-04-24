@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { Loader2, ChevronLeft, FileText, ArrowUpRight, CalendarDays, Phone, Mail } from "lucide-react"
 import { extractListingId } from "@/lib/garage"
 
@@ -44,6 +44,16 @@ export function InvoiceForm() {
   >("idle")
   const [emailAddress, setEmailAddress] = useState<string | null>(null)
   const [manualEmail, setManualEmail] = useState("")
+
+  const previewUrl = useMemo(
+    () => (result ? URL.createObjectURL(result.blob) : null),
+    [result]
+  )
+  useEffect(() => {
+    return () => {
+      if (previewUrl) URL.revokeObjectURL(previewUrl)
+    }
+  }, [previewUrl])
 
   async function handleEmail(overrideTo?: string) {
     if (!result) return
@@ -215,10 +225,26 @@ export function InvoiceForm() {
 
       {/* Card body */}
       <div className="flex flex-col items-center px-4 py-10 sm:px-6">
-        {/* Icon */}
-        <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-full border border-neutral-200 text-neutral-400">
-          <FileText size={26} strokeWidth={1.5} />
-        </div>
+        {/* Preview (success) or icon (error) */}
+        {result && previewUrl ? (
+          <button
+            type="button"
+            onClick={() => window.open(previewUrl, "_blank", "noopener")}
+            aria-label="Open PDF in new tab"
+            className="group mb-5 overflow-hidden rounded-md border border-neutral-200 bg-white shadow-sm transition-all hover:shadow-md hover:border-neutral-300 active:scale-[0.99] cursor-pointer"
+            style={{ width: 140, height: 181 }}
+          >
+            <iframe
+              src={`${previewUrl}#toolbar=0&navpanes=0&scrollbar=0&view=FitH`}
+              title="Invoice preview"
+              className="pointer-events-none h-full w-full"
+            />
+          </button>
+        ) : (
+          <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-full border border-neutral-200 text-neutral-400">
+            <FileText size={26} strokeWidth={1.5} />
+          </div>
+        )}
 
         {result ? (
           <>

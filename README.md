@@ -10,7 +10,7 @@ Paste a listing URL, click **Get PDF invoice**, then choose **Download** (saves 
 - Auto-populated **Bill To** when an upstream profile token is available; otherwise blank fallback "fill-in" line
 - Email delivery with PDF attached (via Resend). Inline email input appears on the fallback path — no `window.prompt`, no hard error
 - Defense-in-depth validation: client rejects malformed URLs before fetching; server re-validates the UUID before hitting upstream
-
+- Appraised value only appears on the invoice when it beats the selling price
 ## Running locally
 
 ```bash
